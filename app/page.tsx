@@ -2,21 +2,11 @@
 
 import { PRODUCTS } from "@/lib/products";
 import { useCart } from "@/lib/cart-context";
-import { ShoppingCart, Zap, Box, ArrowRight, Wallet } from "lucide-react";
+import { ShoppingCart, Box, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { ConnectModal, useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
 
 export default function Home() {
   const { addToCart, items } = useCart();
-  const account = useCurrentAccount();
-  const { mutate: disconnect } = useDisconnectWallet();
-  const [mounted, setMounted] = useState(false);
-  const [connectOpen, setConnectOpen] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  const authenticated = !!account;
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
@@ -29,29 +19,10 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-6">
-          {!mounted ? null : !authenticated ? (
-            <ConnectModal
-              open={connectOpen}
-              onOpenChange={setConnectOpen}
-              trigger={
-                <button
-                  className="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-all flex items-center gap-2"
-                >
-                  <Wallet className="w-3.5 h-3.5" /> Connect_Identity
-                </button>
-              }
-            />
-          ) : (
-            <button
-              onClick={() => disconnect()}
-              className="group flex flex-col items-end"
-            >
-              <span className="text-[10px] font-black uppercase tracking-tighter group-hover:text-red-500 transition-colors">
-                {account!.address.slice(0, 6)}...{account!.address.slice(-4)}
-              </span>
-              <span className="text-[8px] text-white/20 uppercase font-bold tracking-widest">Active_Session</span>
-            </button>
-          )}
+          {/* No wallet here — checkout connects Carpincho in the Irion /pay popup. */}
+          <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-white/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-white/40" /> Irion · Canton checkout
+          </span>
 
           <Link href="/cart" className="relative p-2 hover:bg-white/5 rounded transition-all">
             <ShoppingCart className="w-5 h-5" />
@@ -109,7 +80,7 @@ export default function Home() {
       </div>
 
       <footer className="mt-24 pt-12 border-t border-white/10 opacity-20 text-[10px] uppercase font-bold tracking-widest text-center">
-        Syndicate Hardware © 2026 // Integrated with Polaris Protocol
+        Syndicate Hardware © 2026 // Integrated with Irion Protocol
       </footer>
     </div>
   );

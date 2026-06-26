@@ -1,18 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
-import { initiatePolarisPayment } from "@/app/actions/payment";
+import { initiateIrionPayment } from "@/app/actions/payment";
+import { openIrionCheckout } from "@irion/sdk";
 import { CreditCard, ShieldCheck, Zap, Loader2, User, Mail, MapPin, ArrowLeft, Wallet, CheckCircle, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
+// Origin of the Irion core checkout — the SDK only trusts payment-result
+// messages posted from this exact origin.
+const coreOrigin = (() => { try { return new URL(process.env.NEXT_PUBLIC_IRION_CORE_URL || "http://localhost:3000").origin } catch { return undefined } })();
+
 interface PaymentResult {
-    type: "POLARIS_PAYMENT_RESULT";
+    type: "IRION_PAYMENT_RESULT" | "POLARIS_PAYMENT_RESULT";
     success: boolean;
     loanId?: number;
     amount?: number;
-    paymentMode: "bnpl" | "split3";
+    paymentMode: "bnpl" | "direct";
     txHash?: string;
     error?: string;
 }
@@ -29,53 +34,38 @@ export default function CheckoutPage() {
     const [orderStatus, setOrderStatus] = useState<null | "success" | "error">(null);
     const [paymentDetails, setPaymentDetails] = useState<PaymentResult | null>(null);
 
-    useEffect(() => {
-        const handler = (event: MessageEvent) => {
-            const data = event.data;
-            if (data?.type !== "POLARIS_PAYMENT_RESULT") return;
-
-            const result = data as PaymentResult;
-            setPaymentDetails(result);
-
-            if (result.success) {
-                setOrderStatus("success");
-                clearCart();
-                toast.success(
-                    `Payment confirmed via ${result.paymentMode === "bnpl" ? "BNPL" : "Split-in-3"}!`,
-                    { theme: "dark" }
-                );
-            } else {
-                setOrderStatus("error");
-                toast.error(
-                    result.error || "Payment failed. Please try again.",
-                    { theme: "dark" }
-                );
-            }
-        };
-
-        window.addEventListener("message", handler);
-        return () => window.removeEventListener("message", handler);
-    }, [clearCart]);
-
-    const handlePolarisPay = async () => {
+    const handleIrionPay = async () => {
         setLoading(true);
-        const result = await initiatePolarisPayment(total, `Order for ${items.length} Modules`);
+        const result = await initiateIrionPayment(total, `Order for ${items.length} Modules`);
 
         if (result.error) {
             alert(`Error: ${result.error}`);
             setLoading(false);
         } else if (result.checkoutUrl) {
-            // Open the Polaris Checkout Hub in a new popup window
-            const width = 500;
-            const height = 700;
-            const left = window.screenX + (window.outerWidth - width) / 2;
-            const top = window.screenY + (window.outerHeight - height) / 2;
-
-            window.open(
-                result.checkoutUrl,
-                "XORR_Secure_Settlement",
-                `width=${width},height=${height},left=${left},top=${top},status=no,menubar=no,toolbar=no`
-            );
+            // Open the Irion Checkout Hub via the SDK — it manages the popup and
+            // the (origin-checked) postMessage listener for us.
+            openIrionCheckout(result.checkoutUrl, {
+                allowedOrigin: coreOrigin,
+                onSuccess: (r) => {
+                    const payment = r as unknown as PaymentResult;
+                    setPaymentDetails(payment);
+                    setOrderStatus("success");
+                    clearCart();
+                    toast.success(
+                        `Payment confirmed via ${payment.paymentMode === "bnpl" ? "BNPL" : "full payment"}!`,
+                        { theme: "dark" }
+                    );
+                },
+                onError: (r) => {
+                    const payment = r as unknown as PaymentResult;
+                    setPaymentDetails(payment);
+                    setOrderStatus("error");
+                    toast.error(
+                        payment.error || "Payment failed. Please try again.",
+                        { theme: "dark" }
+                    );
+                },
+            });
 
             setLoading(false);
         }
@@ -92,7 +82,7 @@ export default function CheckoutPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] uppercase font-bold text-white/40 tracking-widest">Payment_Mode</span>
-                            <span className="text-sm font-black uppercase">{paymentDetails.paymentMode === "bnpl" ? "BNPL" : "Split-in-3"}</span>
+                            <span className="text-sm font-black uppercase">{paymentDetails.paymentMode === "bnpl" ? "BNPL" : "Paid in full"}</span>
                         </div>
                         {paymentDetails.amount != null && (
                             <div className="flex flex-col gap-1">
@@ -175,7 +165,7 @@ export default function CheckoutPage() {
                             <label className="text-[10px] uppercase font-bold text-white/40 tracking-widest italic">Protocol_Selection</label>
 
                             <button
-                                onClick={handlePolarisPay}
+                                onClick={handleIrionPay}
                                 disabled={loading}
                                 className="group relative overflow-hidden bg-primary p-6 rounded-lg border-2 border-white/10 hover:border-white/40 transition-all flex flex-col gap-4 text-left"
                             >
@@ -185,13 +175,13 @@ export default function CheckoutPage() {
                                             <Zap className="w-4 h-4 text-white" />
                                         </div>
                                         <span className="font-black text-sm text-white uppercase tracking-tighter">
-                                            Pay_Via_XORR
+                                            Pay with Irion
                                         </span>
                                     </div>
                                     <span className="bg-primary/10 border border-primary/20 text-primary text-[10px] font-black px-2 py-0.5 rounded uppercase">Repaid from yield</span>
                                 </div>
                                 <p className="text-[11px] text-white/60 leading-relaxed font-medium">
-                                    Buy now, pay never with your XORR credit line. Collateral-free settlement on Sui — repaid from yield.
+                                    Buy now, pay never with your Irion credit line. Private settlement on Canton — repaid from yield.
                                 </p>
                                 {loading && (
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
@@ -244,7 +234,7 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-3 p-4 bg-white/5 rounded border border-white/10">
                         <ShieldCheck className="w-5 h-5 text-green-500" />
                         <span className="text-[10px] font-bold text-white/60 leading-tight uppercase tracking-wider">
-                            Secured by Sui native verification & the XORR merchant-escrow protocol
+                            Secured by Canton sub-transaction privacy & the Irion credit protocol
                         </span>
                     </div>
                 </div>
