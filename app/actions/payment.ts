@@ -1,8 +1,7 @@
 "use server"
 
-// Demo merchant settlement on Stellar. The deployer/escrow account that receives
-// the demo storefront's settlements (public, non-secret).
-const DEMO_ESCROW = "GBKZC3N4UVFZ54CAM7I26NWIDQLQJVPPUVDNLDBAS5PC3BAUA3GYOYXR";
+// Demo merchant settlement on Canton. Settlement is performed on-ledger by the
+// merchant core (no public escrow address is needed in the client).
 // Accept the new IRION_CORE_URL; fall back to the old POLARIS_CORE_URL for back-compat.
 const CORE_URL =
     process.env.IRION_CORE_URL || process.env.POLARIS_CORE_URL || "http://localhost:3000";
@@ -22,8 +21,6 @@ export async function initiateIrionPayment(
     const directUrl = () => {
         const p = new URLSearchParams({
             amount: String(amount),
-            escrow: DEMO_ESCROW,
-            to: DEMO_ESCROW,
             merchant: "Irion Demo Shop",
             desc: description,
         });

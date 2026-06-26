@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Irion Shopping App",
-  description: "Demo storefront for Irion Buy-Now-Pay-Never checkout on Stellar.",
+  description: "Demo storefront for Irion Buy-Now-Pay-Never checkout on Canton.",
 };
 
 import { CartProvider } from "@/lib/cart-context";

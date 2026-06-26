@@ -9,9 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@creit.tech/stellar-wallets-kit": "^1.9.5",
     "@irion/sdk": "file:../irion-sdk-canton/irion-sdk-0.1.0.tgz",
-    "@stellar/stellar-sdk": "^16.0.1",
     "@tanstack/react-query": "^5.101.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.0",
