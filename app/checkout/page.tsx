@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { initiateIrionPayment } from "@/app/actions/payment";
-import { openIrionCheckout } from "@irion/sdk";
+import { openIrionCheckout } from "@xorr-finance/irion-sdk";
 import { CreditCard, ShieldCheck, Zap, Loader2, User, Mail, MapPin, ArrowLeft, Wallet, CheckCircle, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";

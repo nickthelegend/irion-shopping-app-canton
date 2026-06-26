@@ -1,10 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // @irion/sdk is installed as a real local copy (an npm pack tarball, not a
-  // symlink) so Turbopack resolves it natively; transpilePackages keeps its
-  // compiled dist compiling cleanly.
-  transpilePackages: ["@irion/sdk"],
+  // @xorr-finance/irion-sdk is a published npm package (built ESM/CJS dist with
+  // proper `exports`), so Turbopack resolves it natively. transpilePackages is
+  // belt-and-suspenders for the scoped dep.
+  transpilePackages: ["@xorr-finance/irion-sdk"],
 };
 
 export default nextConfig;

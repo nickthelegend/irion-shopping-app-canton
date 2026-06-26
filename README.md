@@ -1,7 +1,7 @@
 # Irion Shopping (demo storefront)
 
 A [Next.js](https://nextjs.org/) demo e-commerce storefront that shows how to
-accept Irion payments with the drop-in [`@irion/sdk`](../irion-sdk-canton).
+accept Irion payments with the drop-in [`@xorr-finance/irion-sdk`](../irion-sdk-canton).
 It is a reference for integrators, not a production shop.
 
 ## Checkout flow
@@ -15,10 +15,10 @@ It is a reference for integrators, not a production shop.
    and get back a hosted-checkout URL. If no merchant API credentials are set,
    it falls back to a DB-free direct settlement URL on the Irion core.
 3. `app/checkout/page.tsx` calls `openIrionCheckout(checkoutUrl, ...)` from
-   `@irion/sdk`, which opens the Irion **`/pay` hosted checkout** (served by the
+   `@xorr-finance/irion-sdk`, which opens the Irion **`/pay` hosted checkout** (served by the
    consumer core) where the shopper pays on the **Canton** ledger.
 
-So the path is: **storefront → `@irion/sdk` → merchant `/api/bills/create` →
+So the path is: **storefront → `@xorr-finance/irion-sdk` → merchant `/api/bills/create` →
 Irion `/pay` (Canton)**.
 
 ## How to run
@@ -52,4 +52,4 @@ IRION_CORE_URL=http://localhost:3000
 
 - Next.js 16 (App Router)
 - React 19, Tailwind CSS v4, Framer Motion
-- [`@irion/sdk`](../irion-sdk-canton) — `openIrionCheckout` drop-in checkout
+- [`@xorr-finance/irion-sdk`](../irion-sdk-canton) — `openIrionCheckout` drop-in checkout
