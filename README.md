@@ -1,47 +1,55 @@
-# 🛒 Polaris Shopping App (Demo)
+# Irion Shopping (demo storefront)
 
-The **Polaris Shopping App** is a demonstration e-commerce store built to showcase the Polaris Buy Now Pay Later (BNPL) protocol. It simulates a customer-facing storefront where users can purchase products using liquidity across multiple chains.
+A [Next.js](https://nextjs.org/) demo e-commerce storefront that shows how to
+accept Irion payments with the drop-in [`@irion/sdk`](../irion-sdk-canton).
+It is a reference for integrators, not a production shop.
 
-## 🚀 Key Features
-- **Product Catalog**: Sample items for testing the BNPL payment flow.
-- **Polaris Integration**: Seamless "Pay with Polaris" button for decentralized settlements.
-- **BNPL Checkout**: Interactive demo of how the system calculates collateral requirements and payment plans.
-- **Customer Portal**: Mock dashboard for users to track their ongoing BNPL installments.
+## Checkout flow
 
-## 🛠️ Tech Stack
-- **Framework**: [Next.js](https://nextjs.org/) (App Router)
-- **Styling**: Tailwind CSS
-- **Interactions**: Framer Motion
-- **Payment Link**: Polaris Checkout Extension (Redirect-based)
+1. The shopper picks an item from the **hardcoded demo catalog** in
+   [`lib/products.ts`](lib/products.ts) (a handful of sample products) and goes
+   to checkout.
+2. `app/actions/payment.ts` (a server action) POSTs to the merchant
+   `/api/bills/create` endpoint (in
+   [`irion-merchant-app-canton`](../irion-merchant-app-canton)) to create a bill
+   and get back a hosted-checkout URL. If no merchant API credentials are set,
+   it falls back to a DB-free direct settlement URL on the Irion core.
+3. `app/checkout/page.tsx` calls `openIrionCheckout(checkoutUrl, ...)` from
+   `@irion/sdk`, which opens the Irion **`/pay` hosted checkout** (served by the
+   consumer core) where the shopper pays on the **Canton** ledger.
 
----
+So the path is: **storefront → `@irion/sdk` → merchant `/api/bills/create` →
+Irion `/pay` (Canton)**.
 
-## 🚀 Getting Started
+## How to run
 
-### Installation
+This app runs on **port 3001**. It expects the merchant API and the Irion core
+(which hosts `/pay`) to be reachable.
+
 ```bash
 npm install
+npm run dev -- -p 3001
 ```
 
-### Development
+Then open [http://localhost:3001](http://localhost:3001).
+
+### Environment (optional)
+
+Without credentials, checkout uses the direct-settlement fallback, so the demo
+works out of the box. To route through the merchant bills API instead, set:
+
 ```bash
-npm run dev
+# Merchant bills endpoint (default: https://merchants.irion.finance/api/bills/create)
+MERCHANT_API_URL=http://localhost:3004/api/bills/create
+IRION_CLIENT_ID=...
+IRION_CLIENT_SECRET=...
+
+# Irion consumer core that hosts /pay (default: http://localhost:3000)
+IRION_CORE_URL=http://localhost:3000
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the demo store and test the BNPL flow.
 
----
+## Tech stack
 
-## 🔒 Security
-As a demo application, this project uses mock credentials. For production implementations, follow the instructions in the [Polaris Merchant App](../polaris-merchant-app).
-
-## 🚀 Polaris BNPL System
-User -> Shopify Store -> Polaris Checkout -> `polaris-core` settles on Creditcoin/Sepolia via `polaris-protocol`.
-
----
-
-## 🔒 Privacy-Preserving BNPL (Fhenix FHEVM)
-The demo shopping application utilizes Fhenix Fully Homomorphic Encryption (FHEVM) to ensure that:
-* The customer's exact debt position remains confidential.
-* Collateral verification is performed homomorphically, ensuring liquidations are shielded from front-running and predatory targeting.
-* Credit score updates are calculated privately on-chain under `ScoreManager`.
-
+- Next.js 16 (App Router)
+- React 19, Tailwind CSS v4, Framer Motion
+- [`@irion/sdk`](../irion-sdk-canton) — `openIrionCheckout` drop-in checkout
