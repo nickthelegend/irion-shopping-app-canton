@@ -1,14 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
-interface CartItem {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-    image: string;
-}
+import { addItem, removeItem, cartTotal, type CartItem } from './cart';
 
 interface CartContextType {
     items: CartItem[];
@@ -32,23 +25,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('shopping_cart', JSON.stringify(items));
     }, [items]);
 
-    const addToCart = (product: any) => {
-        setItems(prev => {
-            const exists = prev.find(i => i.id === product.id);
-            if (exists) {
-                return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
-            }
-            return [...prev, { ...product, quantity: 1 }];
-        });
-    };
+    const addToCart = (product: any) => setItems(prev => addItem(prev, product));
 
-    const removeFromCart = (id: string) => {
-        setItems(prev => prev.filter(i => i.id !== id));
-    };
+    const removeFromCart = (id: string) => setItems(prev => removeItem(prev, id));
 
     const clearCart = () => setItems([]);
 
-    const total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const total = cartTotal(items);
 
     return (
         <CartContext.Provider value={{ items, addToCart, removeFromCart, clearCart, total }}>
