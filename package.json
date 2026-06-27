@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx --test lib/*.test.ts"
+    "test": "node --import tsx --test \"lib/**/*.test.ts\" \"app/**/*.test.tsx\""
   },
   "dependencies": {
     "@xorr-finance/irion-sdk": "^0.1.0",
